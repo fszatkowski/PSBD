@@ -1,0 +1,227 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
+USE `mydb` ;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Uczestnik`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Uczestnik` (
+  `PESEL` BIGINT NOT NULL,
+  `Status_Studenta` TINYINT(1) NOT NULL,
+  `Imię` VARCHAR(45) NOT NULL,
+  `Nazwisko` VARCHAR(45) NOT NULL,
+  `Adres_Miejscowość` VARCHAR(45) NOT NULL,
+  `Adres_Ulica` VARCHAR(45) NOT NULL,
+  `Adres_Numer_domu` INT NOT NULL,
+  `Hasło` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`PESEL`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Student`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Student` (
+  `PESEL` BIGINT NOT NULL,
+  `Nr_indeksu` INT NOT NULL,
+  `Wydział` VARCHAR(45) NOT NULL,
+  `Rok_akademicki` INT NOT NULL,
+  UNIQUE INDEX `Nr_indeksu_UNIQUE` (`Nr_indeksu` ASC),
+  INDEX `fk_Student_Uczestnik1_idx` (`PESEL` ASC),
+  CONSTRAINT `fk_Student_Uczestnik1`
+    FOREIGN KEY (`PESEL`)
+    REFERENCES `mydb`.`Uczestnik` (`PESEL`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Dyscyplina`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Dyscyplina` (
+  `idDyscypliny` INT NOT NULL AUTO_INCREMENT,
+  `Nazwa` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idDyscypliny`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Dzień_tygodnia`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Dzień_tygodnia` (
+  `idDnia_tygodnia` INT NOT NULL AUTO_INCREMENT,
+  `Nazwa` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idDnia_tygodnia`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Lokalizacja`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Lokalizacja` (
+  `idLokalizacji` INT NOT NULL AUTO_INCREMENT,
+  `Nazwa_budynku` VARCHAR(45) NOT NULL,
+  `Miejscowość` VARCHAR(45) NOT NULL,
+  `Ulica` VARCHAR(45) NOT NULL,
+  `Numer_budynku` INT NOT NULL,
+  `Numer_sali` INT NOT NULL,
+  `Limit_miejsc` INT NOT NULL,
+  PRIMARY KEY (`idLokalizacji`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Zajęcia`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Zajęcia` (
+  `Id_Zajęć` INT NOT NULL AUTO_INCREMENT,
+  `Forma_Zajęć` TINYINT NOT NULL,
+  `Godzina_rozpoczęcia` TIME NOT NULL,
+  `Godzina_zakończenia` TIME NOT NULL,
+  `idDyscypliny` INT NOT NULL,
+  `idDzień_tygodnia` INT NOT NULL,
+  `idLokalizacja` INT NOT NULL,
+  PRIMARY KEY (`Id_Zajęć`),
+  INDEX `fk_Zajęcia_Dyscyplina1_idx` (`idDyscypliny` ASC),
+  INDEX `fk_Zajęcia_Dzień_tygodnia1_idx` (`idDzień_tygodnia` ASC),
+  INDEX `fk_Zajęcia_Lokalizacja1_idx` (`idLokalizacja` ASC),
+  CONSTRAINT `fk_Zajęcia_Dyscyplina1`
+    FOREIGN KEY (`idDyscypliny`)
+    REFERENCES `mydb`.`Dyscyplina` (`idDyscypliny`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Zajęcia_Dzień_tygodnia1`
+    FOREIGN KEY (`idDzień_tygodnia`)
+    REFERENCES `mydb`.`Dzień_tygodnia` (`idDnia_tygodnia`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Zajęcia_Lokalizacja1`
+    FOREIGN KEY (`idLokalizacja`)
+    REFERENCES `mydb`.`Lokalizacja` (`idLokalizacji`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Uczestnictwo_w_zajęciach`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Uczestnictwo_w_zajęciach` (
+  `IdUczestnictwa` INT NOT NULL AUTO_INCREMENT,
+  `Uczestnik_PESEL` BIGINT NOT NULL,
+  `Id_Zajęć` INT NOT NULL,
+  `Od_godziny` DATETIME NOT NULL,
+  `Do_godziny` DATETIME NOT NULL,
+  `Data` DATE NOT NULL,
+  `Czy_opłacone` TINYINT(1) NOT NULL DEFAULT 0,
+  `Czy_obecność` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`IdUczestnictwa`),
+  INDEX `fk_Uczestnictwo_w_zajęciach_Uczestnik1_idx` (`Uczestnik_PESEL` ASC),
+  INDEX `fk_Uczestnictwo_w_zajęciach_Zajęcia1_idx` (`Id_Zajęć` ASC),
+  CONSTRAINT `fk_Uczestnictwo_w_zajęciach_Uczestnik1`
+    FOREIGN KEY (`Uczestnik_PESEL`)
+    REFERENCES `mydb`.`Uczestnik` (`PESEL`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Uczestnictwo_w_zajęciach_Zajęcia1`
+    FOREIGN KEY (`Id_Zajęć`)
+    REFERENCES `mydb`.`Zajęcia` (`Id_Zajęć`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Gość`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Gość` (
+  `PESEL` BIGINT NOT NULL,
+  INDEX `fk_Gość_Uczestnik_idx` (`PESEL` ASC),
+  CONSTRAINT `fk_Gość_Uczestnik`
+    FOREIGN KEY (`PESEL`)
+    REFERENCES `mydb`.`Uczestnik` (`PESEL`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Zapisy`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Zapisy` (
+  `idZapisu` INT NOT NULL AUTO_INCREMENT,
+  `Uczestnik_PESEL` BIGINT NOT NULL,
+  `Zajęcia_Id_Zajęć` INT NOT NULL,
+  `Czy_zaliczenie` TINYINT(1) NOT NULL DEFAULT 0,
+  `Rok_akademicki` INT NOT NULL,
+  `Liczba_obecności` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`idZapisu`),
+  INDEX `fk_Zapisy_Uczestnik1_idx` (`Uczestnik_PESEL` ASC),
+  INDEX `fk_Zapisy_Zajęcia1_idx` (`Zajęcia_Id_Zajęć` ASC),
+  CONSTRAINT `fk_Zapisy_Uczestnik1`
+    FOREIGN KEY (`Uczestnik_PESEL`)
+    REFERENCES `mydb`.`Uczestnik` (`PESEL`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Zapisy_Zajęcia1`
+    FOREIGN KEY (`Zajęcia_Id_Zajęć`)
+    REFERENCES `mydb`.`Zajęcia` (`Id_Zajęć`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Opiekun`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Opiekun` (
+  `PESEL` BIGINT NOT NULL,
+  `Imię` VARCHAR(45) NOT NULL,
+  `Nazwisko` VARCHAR(45) NOT NULL,
+  `Adres_Miejscowość` VARCHAR(45) NOT NULL,
+  `Adres_Ulica` VARCHAR(45) NOT NULL,
+  `Adres_Nr_domu` INT NOT NULL,
+  PRIMARY KEY (`PESEL`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Przeprowadzenie_zajęć`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Przeprowadzenie_zajęć` (
+  `IdPrzeprowadzonychZajęć` INT NOT NULL,
+  `Id_Zajęć` INT NOT NULL AUTO_INCREMENT,
+  `Opiekun_PESEL` BIGINT NOT NULL,
+  `Date` DATE NOT NULL,
+  PRIMARY KEY (`IdPrzeprowadzonychZajęć`),
+  INDEX `fk_Przeprowadzenie_zajęć_Zajęcia1_idx` (`Id_Zajęć` ASC),
+  INDEX `fk_Przeprowadzenie_zajęć_Opiekun1_idx` (`Opiekun_PESEL` ASC),
+  CONSTRAINT `fk_Przeprowadzenie_zajęć_Zajęcia1`
+    FOREIGN KEY (`Id_Zajęć`)
+    REFERENCES `mydb`.`Zajęcia` (`Id_Zajęć`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Przeprowadzenie_zajęć_Opiekun1`
+    FOREIGN KEY (`Opiekun_PESEL`)
+    REFERENCES `mydb`.`Opiekun` (`PESEL`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
